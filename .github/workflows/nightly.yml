@@ -11,10 +11,10 @@ on:
         required: true
         default: master
         type: string
-      quay_repository:
-        description: Quay repository
+      quay_org:
+        description: Quay organization
         type: string
-        default: quay.io/kiali/kiali
+        default: kiali
         required: true
 
 jobs:
@@ -24,6 +24,7 @@ jobs:
     outputs:
       target_branch: ${{ github.ref_name }}
       quay_tag: ${{ env.quay_tag }}
+      quay_org: ${{ env.quay_org }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -33,22 +34,25 @@ jobs:
     - name: Determine Quay tag
       id: quay_tag
       run: |
-        if [ -z ${{ github.event.inputs.quay_repository }} ];
+        if [ -z ${{ github.event.inputs.quay_org }} ];
         then
-          QUAY_REPO="quay.io/kiali/kiali"
+          QUAY_ORG="kiali"
         else
-          QUAY_REPO="${{ github.event.inputs.quay_repository }}"
+          QUAY_ORG="${{ github.event.inputs.quay_org }}"
         fi
 
+        QUAY_REPO="quay.io/$QUAY_ORG/kiali"
         QUAY_TAG="$QUAY_REPO:latest"
         
         echo "quay_tag=$QUAY_TAG" >> $GITHUB_ENV
+        echo "quay_org=$QUAY_ORG" >> $GITHUB_ENV
 
     - name: Log information
       run: |
         echo "Release type: latest"
 
         echo "Quay tag": ${{ env.quay_tag }}
+        echo "Quay org": ${{ env.quay_org }}
 
   build_backend:
     name: Build backend
@@ -73,6 +77,7 @@ jobs:
     needs: [initialize, build_backend, build_frontend]
     env:
       QUAY_TAG: ${{ needs.initialize.outputs.quay_tag }}
+      IMAGE_ORG: ${{ needs.initialize.outputs.quay_org }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -99,3 +104,15 @@ jobs:
         docker login -u ${{ secrets.QUAY_USER }} -p ${{ secrets.QUAY_PASSWORD }} quay.io
 
         make -e DOCKER_CLI_EXPERIMENTAL=enabled build-linux-multi-arch container-multi-arch-all-push-kiali-quay
+
+  push_test_images:
+    name: Build and push tests images
+    uses: ./.github/workflows/tests-images-creator.yml
+    needs: [initialize, build_backend, build_frontend]
+    with:
+      release_branch: ${{ github.event.inputs.release_branch || github.ref_name }}
+      images_tag: latest
+      quay_org: ${{ needs.initialize.outputs.quay_org }}
+    secrets:
+      QUAY_USER: ${{ secrets.QUAY_USER }}
+      QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
