@@ -1,0 +1,22 @@
+name: Update latest integration tests images
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'hack/**'
+      - 'tests/integration/**'
+
+jobs:
+  push_test_images:
+    name: Build and push cypress test image
+    uses: ./.github/workflows/tests-images-creator.yml
+    with:
+      release_branch: ${{ github.ref_name }}
+      images_tag: 'latest'
+      quay_org: 'kiali'
+      build_mode: 'integration'
+    secrets:
+      QUAY_USER: ${{ secrets.QUAY_USER }}
+      QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
