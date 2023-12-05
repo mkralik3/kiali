@@ -44,6 +44,16 @@ else
 	podman build --pull -t ${INT_TESTS_QUAY_TAG} -f tests/integration/Dockerfile .
 endif
 
+## container-build-cypress-tests: Build Kiali cypress tests container image
+container-build-cypress-tests:
+ifeq ($(DORP),docker)
+	@echo Building container image for Kiali cypress tests using docker
+	docker build --pull -t ${CYPRESS_TESTS_QUAY_TAG} -f deploy/docker/Dockerfile-cypress .
+else
+	@echo Building container image for Kiali cypress tests using podman
+	podman build --pull -t ${CYPRESS_TESTS_QUAY_TAG} -f deploy/docker/Dockerfile-cypress .
+endif
+
 ## container-push-kiali-quay: Pushes the Kiali image to quay.
 container-push-kiali-quay:
 ifeq ($(DORP),docker)
@@ -69,6 +79,16 @@ ifeq ($(DORP),docker)
 else
 	@echo Pushing Kiali integration tests image to ${INT_TESTS_QUAY_TAG} using podman
 	podman push ${INT_TESTS_QUAY_TAG}
+endif
+
+## container-push-cypress-tests-quay: Pushes the Kiali cypress tests image to quay.
+container-push-cypress-tests-quay:
+ifeq ($(DORP),docker)
+	@echo Pushing Kiali cypress tests image to ${CYPRESS_TESTS_QUAY_TAG} using docker
+	docker push ${CYPRESS_TESTS_QUAY_TAG}
+else
+	@echo Pushing Kiali cypress tests image to ${CYPRESS_TESTS_QUAY_TAG} using podman
+	podman push ${CYPRESS_TESTS_QUAY_TAG}
 endif
 
 # Ensure "docker buildx" is available and enabled. For more details, see: https://github.com/docker/buildx/blob/master/README.md
