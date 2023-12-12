@@ -9,6 +9,8 @@
 
 ## Environment Setup
 
+* test 
+
 * System dependencies that will need to be available
     *  `oc` or `kubectl`
     *  `go`
