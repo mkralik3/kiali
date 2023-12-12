@@ -2,6 +2,8 @@
 
 These are visual tests for kiali that are meant to be run against a live environment.
 
+testsat
+
 ## Prerequisites
 
 Installed all dev dependencies from frontend folder. Ensure the `baseUrl` field in the `cypress.json` file at the kiali-ui root is pointing to the server you are trying to test, alternatively you can use `CYPRESS_BASE_URL` environment variable or pass via cmd line `yarn cypress --config baseUrl=http://kiali-server:20001`. By default this is `localhost:3000` so if you are running kiali locally you should just need to do `yarn start` before running cypress.
