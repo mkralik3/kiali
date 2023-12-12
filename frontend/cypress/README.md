@@ -2,7 +2,7 @@
 
 These are visual tests for kiali that are meant to be run against a live environment.
 
-testsat
+testsat3231
 
 ## Prerequisites
 
