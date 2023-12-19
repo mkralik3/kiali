@@ -58,7 +58,7 @@ jobs:
     with:
       release_branch: ${{ github.ref_name }}
       images_tag: 'latest'
-      quay_org: 'kiali'
+      quay_org: 'mkralik3'
       build_mode: ${{ needs.determine_change.outputs.build_mode }}
     secrets:
       QUAY_USER: ${{ secrets.QUAY_USER }}
