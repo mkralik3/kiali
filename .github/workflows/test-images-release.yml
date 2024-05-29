@@ -8,7 +8,7 @@ jobs:
     name: Initialize
     runs-on: ubuntu-20.04
     outputs:
-      quay_org: 'kiali'
+      quay_org: 'mkralik3'
       images_tag: ${{ steps.images_tag.outputs.images_tag }}
     steps:
     - name: Determine Image tag without Z version
