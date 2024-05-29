@@ -1,4 +1,4 @@
-name: Release test suite images
+name: Release test suite images tmp
 
 on:
   release:
