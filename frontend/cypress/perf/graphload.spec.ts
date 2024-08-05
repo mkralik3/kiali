@@ -62,6 +62,7 @@ describe('Performance tests', () => {
             .each(() => {
               // Disabling refresh so that we can see how long it takes to load the page without additional requests
               // being made due to the refresh.
+              cy.waitKialiIsReady()
               cy.visit('/console/overview?refresh=0', {
                 onBeforeLoad(win) {
                   win.performance.mark('start');
@@ -124,6 +125,7 @@ describe('Performance tests', () => {
 
     it('Measures Graph load time', { defaultCommandTimeout: Cypress.env('timeout') }, () => {
       cy.intercept(`**/api/namespaces/graph*`).as('graphNamespaces');
+      cy.waitKialiIsReady()
       cy.visit(graphUrl, {
         onBeforeLoad(win) {
           win.performance.mark('start');

@@ -6,6 +6,7 @@ const KUBEADMIN_IDP = Cypress.env('AUTH_PROVIDER'); // CYPRESS_AUTH_PROVIDER to 
 const auth_strategy = Cypress.env('AUTH_STRATEGY');
 
 Given('user opens base url', () => {
+  cy.waitKialiIsReady()
   cy.visit('/');
   cy.log(auth_strategy);
   cy.window().then((win: any) => {

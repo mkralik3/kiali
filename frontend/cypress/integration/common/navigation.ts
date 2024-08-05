@@ -16,12 +16,14 @@ Given('user is at the {string} list page', (page: string) => {
     });
   }).as('config');
   // Forcing "Pause" to not cause unhandled promises from the browser when cypress is testing
+  cy.waitKialiIsReady()
   cy.visit(Cypress.config('baseUrl') + `/console/${page}?refresh=0`);
   cy.wait('@config');
 });
 
 Given('user is at the {string} page', (page: string) => {
   // Forcing "Pause" to not cause unhandled promises from the browser when cypress is testing
+  cy.waitKialiIsReady()
   cy.visit(Cypress.config('baseUrl') + `/console/${page}?refresh=0`);
 });
 
@@ -53,6 +55,7 @@ Given(
         pageDetail = 'workloads';
         break;
     }
+    cy.waitKialiIsReady()
     cy.visit(Cypress.config('baseUrl') + `/console/namespaces/${namespace}/${pageDetail}/${name}?refresh=0${cluster}`);
     ensureKialiFinishedLoading();
   }

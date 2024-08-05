@@ -59,6 +59,7 @@ Then('user sees span details', () => {
 });
 
 When('I fetch the list of applications', function () {
+  cy.waitKialiIsReady()
   cy.visit('/console/applications?refresh=0');
 });
 

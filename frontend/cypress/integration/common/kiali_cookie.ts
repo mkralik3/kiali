@@ -10,5 +10,6 @@ Given('user is at administrator perspective', () => {
 });
 
 Given('user visits base url', () => {
+  cy.waitKialiIsReady()
   cy.visit('/');
 });

@@ -20,6 +20,7 @@ Before(() => {
 });
 
 When('user graphs {string} namespaces with refresh {string} and duration {string}', (namespaces, refresh, duration) => {
+  cy.waitKialiIsReady()
   cy.visit(url + `/graph/namespaces?refresh=${refresh}&duration=${duration}&namespaces=${namespaces}`);
 });
 

@@ -112,6 +112,7 @@ When(`user selects {string} traffic direction`, direction => {
 });
 
 When('I fetch the overview of the cluster', function () {
+  cy.waitKialiIsReady()
   cy.visit('/console/overview?refresh=0');
 });
 

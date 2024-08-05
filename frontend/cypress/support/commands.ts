@@ -55,6 +55,8 @@ declare namespace Cypress {
     login(username: string, password: string): Chainable<Subject>;
 
     logout(): Chainable<Subject>;
+
+    waitKialiIsReady(): boolean;
   }
 }
 
@@ -213,4 +215,19 @@ Cypress.Commands.add('inputValidation', (id: string, text: string, valid = true)
   cy.get(`input[id="${id}"]`).type(text);
   cy.get(`input[id="${id}"]`).should('have.attr', 'aria-invalid', `${!valid}`);
   cy.get(`input[id="${id}"]`).clear();
+});
+
+Cypress.Commands.add('waitKialiIsReady', () => {
+  let isReady:boolean = false;
+  let tries:number = 0;
+
+  while (!isReady) {
+    if (tries == 60) {
+      throw new Error("Kiali is still not ready after " + 60 + " tries")
+    }
+    cy.exec('kubectl -n istio-system get pods | grep kiali', { failOnNonZeroExit: false }).then(result => {
+      isReady = (result.stdout.includes("1/1") && !result.stdout.includes("0/1"))
+    });
+    tries++
+  }
 });

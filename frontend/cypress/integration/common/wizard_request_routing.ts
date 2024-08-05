@@ -22,6 +22,7 @@ Before(() => {
 });
 
 Given('user opens the namespace {string} and {string} service details page', (namespace: string, service: string) => {
+  cy.waitKialiIsReady()
   // Forcing "Pause" to not cause unhandled promises from the browser when cypress is testing
   cy.visit(url + '/namespaces/' + namespace + '/services/' + service + '?refresh=0');
 });

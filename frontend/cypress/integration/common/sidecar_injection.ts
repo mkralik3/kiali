@@ -234,6 +234,7 @@ Given('a workload with override configuration for automatic sidecar injection', 
 });
 
 When('I visit the overview page', function () {
+  cy.waitKialiIsReady()
   cy.visit('/console/overview?refresh=0');
   cy.contains('Inbound traffic', { matchCase: false }); // Make sure data finished loading, so avoid broken tests because of a re-render
 });
@@ -300,6 +301,7 @@ When('I remove override configuration for sidecar injection in the namespace', f
 });
 
 function switchWorkloadSidecarInjection(enableOrDisable) {
+  cy.waitKialiIsReady()
   cy.visit(`/console/namespaces/${this.targetNamespace}/workloads/${this.targetWorkload}?refresh=0`);
   cy.get('[data-test="workload-actions-dropdown"] button').should('be.visible').click();
   cy.get(`button[data-test=${enableOrDisable}_auto_injection]`).should('be.visible').click();
