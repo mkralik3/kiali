@@ -25,6 +25,14 @@ Given('user is at the {string} page', (page: string) => {
   cy.visit(Cypress.config('baseUrl') + `/console/${page}?refresh=0`);
 });
 
+Given('restart kiali', (page: string) => {
+  cy.exec('kubectl scale -n istio-system --replicas=0 deployment/kiali');
+  cy.exec('kubectl scale -n istio-system --replicas=1 deployment/kiali');
+  cy.wait(5000)
+  cy.exec('kubectl wait -n istio-system deployment kiali --for=condition=available');
+  cy.wait(5000)
+});
+
 Given(
   'user is at the details page for the {string} {string} located in the {string} cluster',
   (detail: detailType, namespacedNamed: string, cluster: string) => {
