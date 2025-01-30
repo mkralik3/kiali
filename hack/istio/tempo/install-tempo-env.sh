@@ -204,6 +204,7 @@ EOF
     else
       # Install TempoStack CR
       echo -e "Installing tempo \n"
+      sleep 10s
       ${CLIENT_EXE} apply -n ${TEMPO_NS} -f - <<EOF
 apiVersion: tempo.grafana.com/v1alpha1
 kind: TempoStack
