@@ -289,12 +289,20 @@ setup_kind_tempo() {
   infomsg "Installing tempo"
   ${SCRIPT_DIR}/istio/tempo/install-tempo-env.sh -c kubectl -ot true
 
-  infomsg "Installing istio"
-  if [[ "${ISTIO_VERSION}" == *-dev ]]; then
-    local hub_arg="--image-hub default"
-  fi
-  
-  "${SCRIPT_DIR}"/istio/install-istio-via-istioctl.sh --reduce-resources true --client-exe-path "$(which kubectl)" -cn "cluster-default" -mid "mesh-default" -net "network-default" -gae "true" ${hub_arg:-} -a "prometheus grafana" -s values.meshConfig.defaultConfig.tracing.zipkin.address="tempo-cr-distributor.tempo:9411"
+  infomsg "Installing istio via sail operator"
+  local patch_file
+  patch_file=$(mktemp)
+  cat <<EOF > "$patch_file"
+spec:
+  values:
+    global:
+      meshID: mesh-default
+      network: network-default
+      multiCluster:
+        clusterName: cluster-default
+EOF
+    "${SCRIPT_DIR}"/istio/install-istio-via-sail.sh --patch-file "$patch_file" --tempo true
+
 
   infomsg "Pushing the images into the cluster..."
   make -e DORP="${DORP}" -e CLUSTER_TYPE="kind" -e KIND_NAME="ci" cluster-push-kiali

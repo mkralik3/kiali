@@ -16,6 +16,7 @@ done
 
 CUSTOM_INSTALL_SETTINGS=""
 PATCH_FILE=""
+TEMPO="false"
 
 # process command line args
 while [[ $# -gt 0 ]]; do
@@ -33,6 +34,10 @@ while [[ $# -gt 0 ]]; do
       fi
       shift;shift
       ;;
+    -tp|--tempo)                   
+      TEMPO="$2"
+      shift;shift
+      ;;
     -h|--help)
       cat <<HELPMSG
 Valid command line arguments:
@@ -43,6 +48,8 @@ Valid command line arguments:
        Override any part of the Istio yaml providing a yq compatible path for that field.
        Options specified with --set take precedence over --patch-file. Some examples you may want to use:
        --set '.spec.version="v1.22.4"'
+  -tp|--tempo
+    If Tempo zipkin will be used as extensionProvider (instead of otel Jaeger)
   -h|--help:
        this message
 HELPMSG
@@ -78,11 +85,6 @@ spec:
   values:
     meshConfig:
       enableTracing: true
-      extensionProviders:
-      - name: otel-tracing
-        opentelemetry:
-          port: 4317
-          service: jaeger-collector.istio-system.svc.cluster.local
     global:
       proxy:
         resources:
@@ -102,6 +104,37 @@ spec:
 EOF
 )
 
+tracing_patch_file=$(mktemp)
+if [ "${TEMPO}" == "true" ]; then
+  cat <<EOF > "$tracing_patch_file"
+spec:
+  values:
+    meshConfig:
+      extensionProviders:
+      - name: tempo
+        zipkin:
+          port: 9411
+          service: tempo-cr-distributor.tempo
+EOF
+  EXTENSION_PROVIDER="tempo"
+else
+  cat <<EOF > "$tracing_patch_file"
+spec:
+  values:
+    meshConfig:
+      extensionProviders:
+      - name: otel-tracing
+        opentelemetry:
+          port: 4317
+          service: jaeger-collector.istio-system.svc.cluster.local
+EOF
+  EXTENSION_PROVIDER="otel-tracing"
+fi
+# use correct provider
+base_yaml=$(mktemp)
+echo "$ISTIO_YAML" > "$base_yaml"
+ISTIO_YAML=$(yq -n "load(\"$base_yaml\") * load(\"$tracing_patch_file\")")
+
 if [ -n "${PATCH_FILE}" ]; then
   base_yaml=$(mktemp)
   echo "$ISTIO_YAML" > "$base_yaml"
@@ -114,10 +147,15 @@ fi
 
 kubectl get ns istio-system || kubectl create ns istio-system
 kubectl apply -f - <<<"$ISTIO_YAML"
-kubectl wait --for=condition=Ready istios/default -n istio-system
+# show the status of istio resource if it is not able to get into the ready state
+kubectl wait --for=condition=Ready istios/default -n istio-system --timeout 60s || (kubectl describe istios/default -n istio-system; exit 1)
 
 # Install addons
-addons=("prometheus" "grafana" "jaeger")
+if [ "${TEMPO}" == "true" ]; then
+  addons=("prometheus" "grafana")
+else
+  addons=("prometheus" "grafana" "jaeger")
+fi
 for addon in "${addons[@]}"; do
   istio_version=$(kubectl get istios default -o jsonpath='{.spec.version}')
   # Verison comes in the form v1.23.0 but we want 1.23
@@ -131,11 +169,11 @@ kubectl apply -f - <<EOF
 apiVersion: telemetry.istio.io/v1
 kind: Telemetry
 metadata:
-  name: otel-tracing
+  name: istio-telemetry
   namespace: istio-system
 spec:
   tracing:
   - providers:
-      - name: otel-tracing
+      - name: ${EXTENSION_PROVIDER}
     randomSamplingPercentage: 100
 EOF
