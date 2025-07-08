@@ -26,6 +26,8 @@ When(
   (scale: string, targetWorkload: string, targetNamespace: string) => {
     cy.exec(`kubectl scale -n ${targetNamespace} --replicas=${scale} deployment/${targetWorkload}`);
     cy.exec(`kubectl rollout status deployment ${targetWorkload} -n ${targetNamespace}`);
+    // wait a little after rollout to sync between k8s and kiali caches
+    cy.wait(1000);
   }
 );
 
